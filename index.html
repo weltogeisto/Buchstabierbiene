@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>German Spelling Bee</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Georgia', serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #333;
+        }
+        
+        .game-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+        }
+        
+        .header {
+            margin-bottom: 30px;
+        }
+        
+        .title {
+            font-size: 2.5rem;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+        
+        .score-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        
+        .score {
+            color: #e74c3c;
+        }
+        
+        .rank {
+            color: #f39c12;
+        }
+        
+        .hexagon-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 30px 0;
+        }
+        
+        .hex-row {
+            display: flex;
+            justify-content: center;
+            margin: -5px 0;
+        }
+        
+        .hex-row:nth-child(2) {
+            margin: 0 -30px;
+        }
+        
+        .hexagon {
+            width: 70px;
+            height: 70px;
+            background: #3498db;
+            position: relative;
+            margin: 0 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            clip-path: polygon(30% 0%, 70% 0%, 100% 50%, 70% 100%, 30% 100%, 0% 50%);
+        }
+        
+        .hexagon:hover {
+            transform: scale(1.1);
+            background: #2980b9;
+        }
+        
+        .hexagon.center {
+            background: #f1c40f;
+            transform: scale(1.1);
+        }
+        
+        .hexagon.center:hover {
+            background: #f39c12;
+            transform: scale(1.2);
+        }
+        
+        .hexagon span {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            text-transform: uppercase;
+        }
+        
+        .input-section {
+            margin: 30px 0;
+        }
+        
+        .word-input {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2rem;
+            border: 3px solid #bdc3c7;
+            border-radius: 10px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .word-input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        
+        .button-group {
+            margin: 20px 0;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #219a52;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #7f8c8d;
+            transform: translateY(-2px);
+        }
+        
+        .message {
+            margin: 15px 0;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .message.show {
+            opacity: 1;
+        }
+        
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .found-words {
+            margin-top: 30px;
+            text-align: left;
+        }
+        
+        .found-words h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+            text-align: center;
+        }
+        
+        .word-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+        }
+        
+        .word-tag {
+            background: #ecf0f1;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            color: #2c3e50;
+            border: 1px solid #bdc3c7;
+        }
+        
+        .pangram {
+            background: #f1c40f !important;
+            color: #2c3e50 !important;
+            border-color: #f39c12 !important;
+            font-weight: bold;
+        }
+        
+        .instructions {
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            text-align: left;
+        }
+        
+        .rank-system {
+            margin: 20px 0;
+            font-size: 0.9rem;
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <h1 class="title">🐝 Buchstabierbiene</h1>
+            <p class="subtitle">German Spelling Bee</p>
+        </div>
+        
+        <div class="score-info">
+            <div class="score">Punkte: <span id="score">0</span></div>
+            <div class="rank">Rang: <span id="rank">Anfänger</span></div>
+        </div>
+        
+        <div class="hexagon-container">
+            <div class="hex-row">
+                <div class="hexagon" data-letter="0">
+                    <span></span>
+                </div>
+                <div class="hexagon" data-letter="1">
+                    <span></span>
+                </div>
+            </div>
+            <div class="hex-row">
+                <div class="hexagon" data-letter="2">
+                    <span></span>
+                </div>
+                <div class="hexagon center" data-letter="center">
+                    <span></span>
+                </div>
+                <div class="hexagon" data-letter="3">
+                    <span></span>
+                </div>
+            </div>
+            <div class="hex-row">
+                <div class="hexagon" data-letter="4">
+                    <span></span>
+                </div>
+                <div class="hexagon" data-letter="5">
+                    <span></span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="input-section">
+            <input type="text" id="wordInput" class="word-input" placeholder="Wort eingeben..." maxlength="20">
+        </div>
+        
+        <div class="button-group">
+            <button class="btn btn-primary" onclick="submitWord()">Eingabe</button>
+            <button class="btn btn-secondary" onclick="shuffleLetters()">Mischen</button>
+            <button class="btn btn-secondary" onclick="clearInput()">Löschen</button>
+        </div>
+        
+        <div id="message" class="message"></div>
+        
+        <div class="rank-system">
+            <strong>Ränge:</strong> Anfänger (0) → Gut (50) → Sehr gut (100) → Großartig (200) → Fantastisch (300) → Königin Biene (400+)
+        </div>
+        
+        <div class="found-words">
+            <h3>Gefundene Wörter (<span id="wordCount">0</span>)</h3>
+            <div id="wordList" class="word-list"></div>
+        </div>
+        
+        <div class="instructions">
+            <strong>Regeln:</strong><br>
+            • Bilde Wörter mit den gegebenen Buchstaben<br>
+            • Der gelbe Buchstabe muss in jedem Wort enthalten sein<br>
+            • Mindestens 4 Buchstaben pro Wort<br>
+            • Pangrams (alle Buchstaben) geben Extrapunkte!
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        let currentLetters = [];
+        let centerLetter = '';
+        let validWords = [];
+        let foundWords = new Set();
+        let score = 0;
+        let pangrams = [];
+        
+        // German word lists for different letter combinations
+        const germanWordSets = {
+            'EINRST': {
+                center: 'E',
+                words: ['EINE', 'NEIN', 'SEIN', 'NEST', 'TEST', 'REST', 'ERST', 'STERN', 'NESTER', 'ERSTEN', 'NEINS', 'EIER', 'TIER', 'TIERE', 'STIER', 'SEITE', 'REISE', 'SERIE', 'STEIN', 'REINE', 'SEINE', 'INTER', 'INERT'],
+                pangrams: ['EINRST', 'TRINES', 'INSERT']
+            },
+            'HALTEN': {
+                center: 'A',
+                words: ['HALT', 'ALTE', 'LATTE', 'NACHT', 'LEHNT', 'ANTEIL', 'TANZEN', 'LAHM', 'NAHT', 'HANT', 'LATE', 'ANTE', 'ELAN', 'LANE', 'NEAT', 'TALE', 'HEAL', 'HALE', 'LEAN', 'THAN'],
+                pangrams: ['HALTEN']
+            },
+            'WUNDER': {
+                center: 'U',
+                words: ['WUNDER', 'UNTER', 'RUNDE', 'WURDE', 'WUNDE', 'GRUND', 'DRUDE', 'RUND', 'DUNE', 'NUDE', 'RUDE', 'USED', 'USER', 'SURE', 'RUSE', 'DURE'],
+                pangrams: ['WUNDER']
+            },
+            'BLICHER': {
+                center: 'L',
+                words: ['LICHT', 'LICH', 'LEHR', 'LIEB', 'LIEBE', 'LEBEN', 'LEBEN', 'LEHRE', 'BLEICH', 'REICH', 'LEICHT', 'BEIL', 'LEER', 'REEL', 'BIER', 'HIER', 'IHLE', 'EILE', 'HEIL'],
+                pangrams: ['BLICHER', 'LIEBHRE']
+            }
+        };
+        
+        // Initialize game with a random word set
+        function initGame() {
+            const wordSetKeys = Object.keys(germanWordSets);
+            const randomKey = wordSetKeys[Math.floor(Math.random() * wordSetKeys.length)];
+            const wordSet = germanWordSets[randomKey];
+            
+            currentLetters = randomKey.split('');
+            centerLetter = wordSet.center;
+            validWords = wordSet.words.map(word => word.toLowerCase());
+            pangrams = wordSet.pangrams ? wordSet.pangrams.map(word => word.toLowerCase()) : [];
+            
+            updateDisplay();
+        }
+        
+        function updateDisplay() {
+            // Shuffle non-center letters
+            const outerLetters = currentLetters.filter(letter => letter !== centerLetter);
+            const shuffled = shuffleArray([...outerLetters]);
+            
+            // Place center letter
+            document.querySelector('[data-letter="center"] span').textContent = centerLetter;
+            
+            // Place outer letters
+            for (let i = 0; i < 6; i++) {
+                const hex = document.querySelector(`[data-letter="${i}"]`);
+                if (hex && shuffled[i]) {
+                    hex.querySelector('span').textContent = shuffled[i];
+                }
+            }
+        }
+        
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+        
+        // Add click handlers to hexagons
+        document.querySelectorAll('.hexagon').forEach(hex => {
+            hex.addEventListener('click', function() {
+                const letter = this.querySelector('span').textContent;
+                if (letter) {
+                    addLetterToInput(letter);
+                }
+            });
+        });
+        
+        function addLetterToInput(letter) {
+            const input = document.getElementById('wordInput');
+            input.value += letter.toLowerCase();
+            input.focus();
+        }
+        
+        function submitWord() {
+            const input = document.getElementById('wordInput');
+            const word = input.value.trim().toLowerCase();
+            
+            if (!word) {
+                showMessage('Bitte gib ein Wort ein!', 'error');
+                return;
+            }
+            
+            if (word.length < 4) {
+                showMessage('Wort muss mindestens 4 Buchstaben haben!', 'error');
+                return;
+            }
+            
+            if (!word.includes(centerLetter.toLowerCase())) {
+                showMessage(`Wort muss den Buchstaben ${centerLetter} enthalten!`, 'error');
+                return;
+            }
+            
+            // Check if word uses only available letters
+            const wordLetters = word.split('');
+            const availableLetters = currentLetters.map(l => l.toLowerCase());
+            const letterCount = {};
+            
+            // Count available letters
+            for (let letter of availableLetters) {
+                letterCount[letter] = (letterCount[letter] || 0) + 1;
+            }
+            
+            // Check if word can be formed
+            const usedCount = {};
+            for (let letter of wordLetters) {
+                usedCount[letter] = (usedCount[letter] || 0) + 1;
+                if (usedCount[letter] > (letterCount[letter] || 0)) {
+                    showMessage('Wort kann nicht mit den verfügbaren Buchstaben gebildet werden!', 'error');
+                    return;
+                }
+            }
+            
+            if (foundWords.has(word)) {
+                showMessage('Wort bereits gefunden!', 'error');
+                return;
+            }
+            
+            if (validWords.includes(word)) {
+                foundWords.add(word);
+                const isPangram = pangrams.includes(word);
+                const wordScore = calculateScore(word, isPangram);
+                score += wordScore;
+                
+                updateScore();
+                addWordToList(word, isPangram);
+                
+                if (isPangram) {
+                    showMessage(`Pangram! +${wordScore} Punkte`, 'success');
+                } else {
+                    showMessage(`Gut! +${wordScore} Punkte`, 'success');
+                }
+                
+                clearInput();
+            } else {
+                showMessage('Wort nicht in der Liste!', 'error');
+            }
+        }
+        
+        function calculateScore(word, isPangram) {
+            if (word.length === 4) return 1;
+            if (isPangram) return word.length + 7;
+            return word.length;
+        }
+        
+        function updateScore() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('rank').textContent = getRank();
+            document.getElementById('wordCount').textContent = foundWords.size;
+        }
+        
+        function getRank() {
+            if (score >= 400) return 'Königin Biene';
+            if (score >= 300) return 'Fantastisch';
+            if (score >= 200) return 'Großartig';
+            if (score >= 100) return 'Sehr gut';
+            if (score >= 50) return 'Gut';
+            return 'Anfänger';
+        }
+        
+        function addWordToList(word, isPangram) {
+            const wordList = document.getElementById('wordList');
+            const wordTag = document.createElement('div');
+            wordTag.className = 'word-tag' + (isPangram ? ' pangram' : '');
+            wordTag.textContent = word.toUpperCase();
+            wordList.appendChild(wordTag);
+        }
+        
+        function showMessage(text, type) {
+            const messageEl = document.getElementById('message');
+            messageEl.textContent = text;
+            messageEl.className = `message ${type} show`;
+            
+            setTimeout(() => {
+                messageEl.classList.remove('show');
+            }, 3000);
+        }
+        
+        function shuffleLetters() {
+            updateDisplay();
+        }
+        
+        function clearInput() {
+            document.getElementById('wordInput').value = '';
+            document.getElementById('wordInput').focus();
+        }
+        
+        // Keyboard support
+        document.getElementById('wordInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                submitWord();
+            }
+        });
+        
+        // Initialize the game
+        initGame();
+    </script>
+</body>
+</html>
