@@ -223,31 +223,17 @@
         </div>
         <div class="hexagon-container">
             <div class="hex-row">
-                <div class="hexagon" data-letter="0">
-                    <span></span>
-                </div>
-                <div class="hexagon" data-letter="1">
-                    <span></span>
-                </div>
+                <div class="hexagon" data-letter="0"><span></span></div>
+                <div class="hexagon" data-letter="1"><span></span></div>
             </div>
             <div class="hex-row">
-                <div class="hexagon" data-letter="2">
-                    <span></span>
-                </div>
-                <div class="hexagon center" data-letter="center">
-                    <span></span>
-                </div>
-                <div class="hexagon" data-letter="3">
-                    <span></span>
-                </div>
+                <div class="hexagon" data-letter="2"><span></span></div>
+                <div class="hexagon center" data-letter="center"><span></span></div>
+                <div class="hexagon" data-letter="3"><span></span></div>
             </div>
             <div class="hex-row">
-                <div class="hexagon" data-letter="4">
-                    <span></span>
-                </div>
-                <div class="hexagon" data-letter="5">
-                    <span></span>
-                </div>
+                <div class="hexagon" data-letter="4"><span></span></div>
+                <div class="hexagon" data-letter="5"><span></span></div>
             </div>
         </div>
         <div class="input-section">
@@ -263,7 +249,7 @@
             <strong>Ränge:</strong> Anfänger (0) → Gut (50) → Sehr gut (100) → Großartig (200) → Fantastisch (300) → Königin Biene (400+)
         </div>
         <div class="found-words">
-            <h3>Gefundene Wörter (<span id="wordCount">0</span>)</h3>
+            <h3>Gefundene Wörter (<span id="wordCount">0</span> von <span id="totalWords">0</span>)</h3>
             <div id="wordList" class="word-list"></div>
         </div>
         <div class="instructions">
@@ -284,42 +270,41 @@
         let score = 0;
         let pangrams = [];
 
-        // German word lists for different letter combinations
+        // Expanded and improved word lists
         const germanWordSets = {
+            'HALTEN': {
+                center: 'A',
+                words: [
+                    'HALT', 'HALTE', 'HALTEN', 'HALLE', 'HALLEN', 'ALTE', 'ALTEN', 'LATTE', 'LATEN', 'NACHT', 'NACHTEN', 'LEHNT', 'ANTEIL', 'TANZEN', 'LAHM', 'NAHT', 'HANT', 'LATE', 'ANTE', 'ELAN', 'LANE', 'NEAT', 'TALE', 'HEAL', 'HALE', 'LEAN', 'THAN', 'ALLEN', 'AHNEN', 'LENA', 'ENTE', 'ALLE', 'HELEN', 'NATAL', 'HANNA', 'ANNA'
+                ],
+                pangrams: ['HALTEN']
+            },
             'EINRST': {
                 center: 'E',
                 words: [
                     'EINE', 'NEIN', 'SEIN', 'NEST', 'TEST', 'REST', 'ERST', 'STERN', 'NESTER', 'ERSTEN', 'NEINS',
                     'EIER', 'TIER', 'TIERE', 'STIER', 'SEITE', 'REISE', 'SERIE', 'STEIN', 'REINE', 'SEITEN',
-                    'STEINE', 'SERIEN', 'EINSETZEN', 'EINSTERN'
+                    'STEINE', 'SERIEN', 'EINSETZEN', 'EINSTERN', 'SENIER', 'REISEN', 'REINS', 'STEINER', 'SENIERTE'
                 ],
                 pangrams: ['EINRST', 'TRINES', 'INSERT']
-            },
-            'HALTEN': {
-                center: 'A',
-                words: [
-                    'HALT', 'ALTE', 'LATTE', 'NACHT', 'LEHNT', 'ANTEIL', 'TANZEN', 'LAHM', 'NAHT', 'HANT',
-                    'LATE', 'ANTE', 'ELAN', 'LANE', 'NEAT', 'TALE', 'HEAL', 'HALE', 'LEAN', 'THAN'
-                ],
-                pangrams: ['HALTEN']
-            },
-            'WUNDER': {
-                center: 'U',
-                words: [
-                    'WUNDER', 'UNTER', 'RUNDE', 'WURDE', 'WUNDE', 'GRUND', 'DRUDE', 'RUND', 'DUNE', 'NUDE',
-                    'RUDE', 'USED', 'USER', 'SURE', 'RUSE', 'DURE'
-                ],
-                pangrams: ['WUNDER']
             },
             'KOSMINE': {
                 center: 'O',
                 words: [
                     'KOMMEN', 'KOSEN', 'KOMISE', 'SOMEN', 'MINEN', 'NOMEN', 'MONS', 'SIMON', 'NIES', 'MEINS',
-                    'KOMINE', 'MONIE', 'KOMEN', 'MOIN', 'NOME', 'KONI', 'SOMI', 'SONNE'
+                    'KOMINE', 'MONIE', 'KOMEN', 'MOIN', 'NOME', 'KONI', 'SOMI', 'SONNE', 'MONEN', 'MONSEN', 'NEONS', 'OMEN', 'SEMIN', 'KOSINE', 'MONISE'
                 ],
                 pangrams: ['KOSMINE']
+            },
+            'WUNDER': {
+                center: 'U',
+                words: [
+                    'WUNDER', 'UNTER', 'RUNDE', 'WURDE', 'WUNDE', 'GRUND', 'DRUDE', 'RUND', 'DUNE', 'NUDE',
+                    'RUDE', 'USED', 'USER', 'SURE', 'RUSE', 'DURE', 'UNGEN', 'DURNE', 'NUDER', 'URNE'
+                ],
+                pangrams: ['WUNDER']
             }
-            // Add more sets as you wish!
+            // Add more sets as needed!
         };
 
         // Initialize game with a random word set
@@ -333,7 +318,12 @@
             validWords = wordSet.words.map(word => word.toLowerCase());
             pangrams = wordSet.pangrams ? wordSet.pangrams.map(word => word.toLowerCase()) : [];
 
+            foundWords = new Set();
+            score = 0;
             updateDisplay();
+            updateScore();
+            updateTotalWords();
+            clearWordList();
         }
 
         function updateDisplay() {
@@ -434,6 +424,10 @@
             document.getElementById('wordCount').textContent = foundWords.size;
         }
 
+        function updateTotalWords() {
+            document.getElementById('totalWords').textContent = validWords.length;
+        }
+
         function getRank() {
             if (score >= 400) return 'Königin Biene';
             if (score >= 300) return 'Fantastisch';
@@ -449,6 +443,10 @@
             wordTag.className = 'word-tag' + (isPangram ? ' pangram' : '');
             wordTag.textContent = word.toUpperCase();
             wordList.appendChild(wordTag);
+        }
+
+        function clearWordList() {
+            document.getElementById('wordList').innerHTML = '';
         }
 
         function showMessage(text, type) {
